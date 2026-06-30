@@ -1,0 +1,17 @@
+# dependencias
+node_modules/
+
+# builds
+dist/
+.angular/
+
+# entorno y base de datos
+.env
+*.local.env
+backend/prisma/dev.db
+backend/prisma/dev.db-journal
+
+# varios
+*.log
+.DS_Store
+Thumbs.db

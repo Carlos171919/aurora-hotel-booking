@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String
+  role      String    @default("USER")
+  bookings  Booking[]
+  createdAt DateTime  @default(now())
+}
+
+model Room {
+  id            Int       @id @default(autoincrement())
+  name          String
+  type          String
+  description   String
+  pricePerNight Float
+  capacity      Int
+  images        String    // URLs separadas por coma (SQLite no soporta arrays)
+  amenities     String    // servicios separados por coma
+  bookings      Booking[]
+  createdAt     DateTime  @default(now())
+}
+
+model Booking {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  room      Room     @relation(fields: [roomId], references: [id])
+  roomId    Int
+  checkIn   DateTime
+  checkOut  DateTime
+  guests    Int
+  total     Float
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+}

@@ -1,0 +1,18 @@
+<main class="page">
+  <section class="hero">
+    <h1>🏨 {{ title }}</h1>
+    <p class="subtitle">Plataforma de reservas de hotel · Fase 1 — Cimientos</p>
+
+    <p
+      class="status"
+      [class.ok]="apiStatus() === 'ok'"
+      [class.err]="apiStatus() === 'error'"
+    >
+      <span *ngIf="apiStatus() === 'cargando'">Conectando con la API…</span>
+      <span *ngIf="apiStatus() === 'ok'">API conectada ✓</span>
+      <span *ngIf="apiStatus() === 'error'">API sin conexión ✗ — inicia el backend (npm run dev)</span>
+    </p>
+  </section>
+
+  <router-outlet />
+</main>
