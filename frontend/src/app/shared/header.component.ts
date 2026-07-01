@@ -1,21 +1,25 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { AuthService } from '../core/auth.service';
+import { IconComponent } from './icon.component';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, IconComponent],
   template: `
     <header class="navbar">
-      <a routerLink="/" class="brand">🏨 Aurora Hotel</a>
+      <a routerLink="/" class="brand"><app-icon name="logo" [size]="26" /> Aurora Hotel</a>
       <nav class="nav-links">
         <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
         <a routerLink="/habitaciones" routerLinkActive="active">Habitaciones</a>
         @if (auth.isLoggedIn()) {
           <a routerLink="/mis-reservas" routerLinkActive="active">Mis reservas</a>
+          @if (auth.isAdmin()) {
+            <a routerLink="/admin" routerLinkActive="active">Admin</a>
+          }
           <span class="hello">Hola, {{ firstName() }}</span>
-          <button class="btn btn-ghost" (click)="logout()">Salir</button>
+          <button class="btn btn-ghost" (click)="logout()"><app-icon name="logout" [size]="15" /> Salir</button>
         } @else {
           <a routerLink="/login" routerLinkActive="active">Ingresar</a>
           <a routerLink="/registro" class="btn btn-primary">Registrarse</a>

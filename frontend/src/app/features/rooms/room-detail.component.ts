@@ -5,19 +5,20 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RoomsService } from '../../core/rooms.service';
 import { BookingsService } from '../../core/bookings.service';
 import { AuthService } from '../../core/auth.service';
-import { Room } from '../../core/models';
+import { Room, Booking } from '../../core/models';
+import { IconComponent } from '../../shared/icon.component';
 
 @Component({
   selector: 'app-room-detail',
   standalone: true,
-  imports: [RouterLink, ReactiveFormsModule, CurrencyPipe],
+  imports: [RouterLink, ReactiveFormsModule, CurrencyPipe, IconComponent],
   template: `
     @if (loading()) {
       <p class="muted">Cargando…</p>
     } @else if (!room()) {
       <p class="error">No se encontró la habitación.</p>
     } @else {
-      <a routerLink="/habitaciones" class="muted">← Volver a habitaciones</a>
+      <a routerLink="/habitaciones" class="back"><app-icon name="arrowLeft" [size]="16" /> Volver a habitaciones</a>
       <div class="detail" style="margin-top:1rem">
         <div>
           <img [src]="room()!.images[0]" [alt]="room()!.name" />
@@ -26,16 +27,32 @@ import { Room } from '../../core/models';
           <p class="muted">{{ room()!.description }}</p>
           <h4>Servicios</h4>
           <div class="amenities">
-            @for (a of room()!.amenities; track a) { <span class="chip">{{ a }}</span> }
+            @for (a of room()!.amenities; track a) {
+              <span class="chip"><app-icon name="check" [size]="13" class="icon-check" /> {{ a }}</span>
+            }
           </div>
           <p><strong>Capacidad:</strong> {{ room()!.capacity }} huésped(es)</p>
         </div>
 
         <div class="panel">
-          @if (confirmed()) {
-            <h3 class="success">¡Reserva creada! ✓</h3>
-            <p class="muted">Tu reserva quedó registrada como pendiente.</p>
-            <a routerLink="/mis-reservas" class="btn btn-primary btn-block">Ver mis reservas</a>
+          @if (paid()) {
+            <div class="confirm">
+              <span class="confirm-ic"><app-icon name="check" [size]="30" /></span>
+              <h3>Pago confirmado</h3>
+              <p class="muted">Tu reserva quedó <strong>confirmada</strong>. ¡Te esperamos!</p>
+              <a routerLink="/mis-reservas" class="btn btn-primary btn-block">Ver mis reservas</a>
+            </div>
+          } @else if (created()) {
+            <div class="confirm">
+              <span class="confirm-ic pending"><app-icon name="calendar" [size]="26" /></span>
+              <h3>Reserva creada</h3>
+              <p class="muted">Pendiente de pago · Total {{ created()!.total | currency:'USD':'symbol':'1.0-0' }}</p>
+              @if (error()) { <p class="error">{{ error() }}</p> }
+              <button class="btn btn-primary btn-block" (click)="pagar()">
+                <app-icon name="card" [size]="18" /> Pagar ahora (simulado)
+              </button>
+              <a routerLink="/mis-reservas" class="muted" style="display:block;margin-top:.6rem">Pagar más tarde</a>
+            </div>
           } @else {
             <h3>Reservar — {{ room()!.pricePerNight | currency:'USD':'symbol':'1.0-0' }}/noche</h3>
             <form class="form" [formGroup]="form" (ngSubmit)="reservar()">
@@ -50,7 +67,7 @@ import { Room } from '../../core/models';
               @if (error()) { <p class="error">{{ error() }}</p> }
 
               <button class="btn btn-primary btn-block" type="submit">
-                {{ auth.isLoggedIn() ? 'Confirmar reserva' : 'Inicia sesión para reservar' }}
+                {{ auth.isLoggedIn() ? 'Reservar' : 'Inicia sesión para reservar' }}
               </button>
             </form>
           }
@@ -70,7 +87,8 @@ export class RoomDetailComponent {
   room = signal<Room | null>(null);
   loading = signal(true);
   error = signal('');
-  confirmed = signal(false);
+  created = signal<Booking | null>(null);
+  paid = signal(false);
   today = new Date().toISOString().split('T')[0];
 
   form = this.fb.group({
@@ -120,8 +138,16 @@ export class RoomDetailComponent {
     this.bookingsSvc
       .create({ roomId: this.room()!.id, checkIn: checkIn!, checkOut: checkOut!, guests: guests! })
       .subscribe({
-        next: () => this.confirmed.set(true),
+        next: (b) => this.created.set(b),
         error: (e) => this.error.set(e.error?.message ?? 'No se pudo crear la reserva.'),
       });
+  }
+
+  pagar() {
+    this.error.set('');
+    this.bookingsSvc.pay(this.created()!.id).subscribe({
+      next: () => this.paid.set(true),
+      error: (e) => this.error.set(e.error?.message ?? 'No se pudo procesar el pago.'),
+    });
   }
 }

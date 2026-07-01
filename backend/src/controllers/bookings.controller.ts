@@ -55,6 +55,25 @@ export async function myBookings(req: AuthRequest, res: Response) {
   res.json(bookings);
 }
 
+// Pago simulado: confirma la reserva (modo demo, sin cobro real).
+export async function payBooking(req: AuthRequest, res: Response) {
+  const id = Number(req.params.id);
+  const booking = await prisma.booking.findUnique({ where: { id } });
+  if (!booking) return res.status(404).json({ message: 'Reserva no encontrada' });
+  if (booking.userId !== req.user!.id && req.user!.role !== 'ADMIN') {
+    return res.status(403).json({ message: 'No puedes pagar esta reserva' });
+  }
+  if (booking.status === 'CANCELLED') {
+    return res.status(400).json({ message: 'La reserva está cancelada' });
+  }
+  const updated = await prisma.booking.update({
+    where: { id },
+    data: { status: 'CONFIRMED' },
+    include: { room: true },
+  });
+  res.json(updated);
+}
+
 export async function cancelBooking(req: AuthRequest, res: Response) {
   const id = Number(req.params.id);
   const booking = await prisma.booking.findUnique({ where: { id } });

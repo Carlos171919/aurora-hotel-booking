@@ -3,11 +3,12 @@ import { DatePipe, CurrencyPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { BookingsService } from '../../core/bookings.service';
 import { Booking } from '../../core/models';
+import { IconComponent } from '../../shared/icon.component';
 
 @Component({
   selector: 'app-my-bookings',
   standalone: true,
-  imports: [DatePipe, CurrencyPipe, RouterLink],
+  imports: [DatePipe, CurrencyPipe, RouterLink, IconComponent],
   template: `
     <h2 class="page-title">Mis reservas</h2>
 
@@ -29,9 +30,14 @@ import { Booking } from '../../core/models';
             <div style="text-align:right">
               <span class="status {{ b.status }}">{{ b.status }}</span>
               <div><strong>{{ b.total | currency:'USD':'symbol':'1.0-0' }}</strong></div>
-              @if (b.status !== 'CANCELLED') {
-                <button class="btn btn-danger" style="margin-top:.4rem" (click)="cancel(b.id)">Cancelar</button>
-              }
+              <div style="display:flex;gap:.4rem;justify-content:flex-end;margin-top:.4rem">
+                @if (b.status === 'PENDING') {
+                  <button class="btn btn-primary btn-sm" (click)="pay(b.id)"><app-icon name="card" [size]="15" /> Pagar</button>
+                }
+                @if (b.status !== 'CANCELLED') {
+                  <button class="btn btn-danger btn-sm" (click)="cancel(b.id)">Cancelar</button>
+                }
+              </div>
             </div>
           </div>
         }
@@ -54,7 +60,6 @@ export class MyBookingsComponent {
     });
   }
 
-  cancel(id: number) {
-    this.svc.cancel(id).subscribe({ next: () => this.load() });
-  }
+  pay(id: number) { this.svc.pay(id).subscribe({ next: () => this.load() }); }
+  cancel(id: number) { this.svc.cancel(id).subscribe({ next: () => this.load() }); }
 }

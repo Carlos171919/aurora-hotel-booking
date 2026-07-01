@@ -15,6 +15,10 @@ export class BookingsService {
     return this.http.get<Booking[]>(`${API_URL}/bookings/me`);
   }
 
+  pay(id: number) {
+    return this.http.post<Booking>(`${API_URL}/bookings/${id}/pay`, {});
+  }
+
   cancel(id: number) {
     return this.http.delete<Booking>(`${API_URL}/bookings/${id}`);
   }

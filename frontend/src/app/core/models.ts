@@ -31,4 +31,5 @@ export interface Booking {
   total: number;
   status: 'PENDING' | 'CONFIRMED' | 'CANCELLED';
   room?: Room;
+  user?: { id: number; name: string; email: string };
 }
